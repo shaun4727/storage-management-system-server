@@ -12,7 +12,7 @@ export interface IUser extends Document {
   email: string
   password?: string
   name: string
-  role: UserRole.AGENT | UserRole.USER
+  role: UserRole.USER
   hasShop: boolean
   clientInfo: {
     device: 'pc' | 'mobile' // Device type
