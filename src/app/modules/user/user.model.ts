@@ -1,9 +1,9 @@
-import bcrypt from 'bcrypt'
-import { StatusCodes } from 'http-status-codes'
-import mongoose, { Schema } from 'mongoose'
-import config from '../../config'
-import AppError from '../../errors/appError'
-import { IUser, UserModel, UserRole } from './user.interface'
+import bcrypt from 'bcrypt';
+import { StatusCodes } from 'http-status-codes';
+import mongoose, { Schema } from 'mongoose';
+import config from '../../config';
+import AppError from '../../errors/appError';
+import { IUser, UserModel, UserRole } from './user.interface';
 
 // Create the User schema based on the interface
 const userSchema = new Schema<IUser, UserModel>(
@@ -24,7 +24,7 @@ const userSchema = new Schema<IUser, UserModel>(
     },
     role: {
       type: String,
-      enum: [UserRole.AGENT, UserRole.USER],
+      enum: [UserRole.ADMIN, UserRole.USER],
       default: UserRole.USER,
     },
     hasShop: {
@@ -75,59 +75,53 @@ const userSchema = new Schema<IUser, UserModel>(
   {
     timestamps: true,
   },
-)
+);
 
 userSchema.pre('save', async function (next) {
-  const user = this
+  const user = this;
   if (!this.isModified('password')) {
-    return next()
+    return next();
   }
-  user.password! = await bcrypt.hash(
-    user.password!,
-    Number(config.bcrypt_salt_rounds),
-  )
+  user.password! = await bcrypt.hash(user.password!, Number(config.bcrypt_salt_rounds));
 
-  next()
-})
+  next();
+});
 
 userSchema.post('save', function (doc, next) {
-  doc.password = ''
-  next()
-})
+  doc.password = '';
+  next();
+});
 
 userSchema.set('toJSON', {
   transform: (_doc, ret) => {
     if (ret.password) {
-      delete ret.password
+      delete ret.password;
     }
-    return ret
+    return ret;
   },
-})
+});
 
-userSchema.statics.isPasswordMatched = async function (
-  plainTextPassword,
-  hashedPassword,
-) {
-  return await bcrypt.compare(plainTextPassword, hashedPassword)
-}
+userSchema.statics.isPasswordMatched = async function (plainTextPassword, hashedPassword) {
+  return await bcrypt.compare(plainTextPassword, hashedPassword);
+};
 
 userSchema.statics.isUserExistsByEmail = async function (email: string) {
-  return await User.findOne({ email }).select('+password')
-}
+  return await User.findOne({ email }).select('+password');
+};
 
 userSchema.statics.checkUserExist = async function (userId: string) {
-  const existingUser = await this.findById(userId)
+  const existingUser = await this.findById(userId);
 
   if (!existingUser) {
-    throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'User does not exist!')
+    throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'User does not exist!');
   }
 
   if (!existingUser.isActive) {
-    throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'User is not active!')
+    throw new AppError(StatusCodes.NOT_ACCEPTABLE, 'User is not active!');
   }
 
-  return existingUser
-}
+  return existingUser;
+};
 
-const User = mongoose.model<IUser, UserModel>('User', userSchema)
-export default User
+const User = mongoose.model<IUser, UserModel>('User', userSchema);
+export default User;

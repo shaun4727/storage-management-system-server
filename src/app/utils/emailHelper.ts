@@ -28,7 +28,7 @@ const sendEmail = async (
 
     // Email configuration
     const mailOptions: any = {
-      from: '"EMart" <support@emart.com>',
+      from: '"File Manager" <support@emart.com>',
       to: email,
       subject,
       html,
